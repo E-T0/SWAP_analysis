@@ -152,7 +152,7 @@ def plot_redox(df_redox : pd.DataFrame(),
             print("ylimits_redox is not of the correct format and is thus ignored.")
     
     ax.set_xlabel('Date')
-    ax.set_ylabel(r'Redox potential [$mV$]')
+    ax.set_ylabel(r'Redox potential [mV]')
     
     # Modify axis ticks with the goal to make it more readable.
     ax.xaxis.set_major_locator(mdates.MonthLocator())
@@ -249,7 +249,7 @@ def plot_temp(df_temp : pd.DataFrame(),
             print("ylimits is not of the correct format and is thus ignored.")
             
     ax.set_xlabel('Date')
-    ax.set_ylabel('Temperature (ºC)')
+    ax.set_ylabel('Temperature [°C]')
 
     # Modify axis ticks to make it more readable.    
     ax.xaxis.set_major_locator(mdates.MonthLocator())

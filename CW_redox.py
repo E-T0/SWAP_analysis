@@ -9,9 +9,14 @@ import tools as tools
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 #%%
 # Relative file path to the excel file with the data
 file_path = "./S9081 HMVT CR1000X_measurements.dat"
+write_images = 'y'
+fig_dpi = 150
+if not os.path.exists("Output"):
+    os.makedirs("Output")
 
 # The correction factor with regards to 3M KCl electrode reference
 correction = 200
@@ -28,12 +33,15 @@ redox_nodes = tools.node_dictionary["CW3_80cm"]
 # Or alternatively by manually choosing the redox nodes
 # Naming as: CW# = which wetland, S# = which position along the wetland, -# = which depth
 # Options: CW1, CW2, CW3 | S1, S2, S3, S4 | -1 (20cm), -2 (40cm), -3 (60cm), -4 (80cm)
-redox_nodes = ["CW3S1-4", "CW3S2-4", "CW3S3-4", "CW3S4-4"]
+redox_nodes = ["CW2S1-1", "CW2S1-2", "CW2S1-3", "CW2S1-4"]
+# redox_nodes = ["CW2S2-1", "CW2S2-2", "CW2S2-3", "CW2S2-4"]
+# redox_nodes = ["CW2S3-1", "CW2S3-2", "CW2S3-3", "CW2S3-4"]
+# redox_nodes = ["CW2S4-1", "CW2S4-2", "CW2S4-3", "CW2S4-4"]
 
 # The nodes you want to plot for the temperature plot
 temp_nodes  = ['CW1S1', 'CW1S2', 'CW1S3', 'CW1S4', 'CW2S1', 'CW2S2', 'CW2S3', 'CW2S4', 'CW3S1', 'CW3S2', 'CW3S3']
 # The start and end date of the data you want to plot, as 'YYYY-MM-DD hh-mm-ss'. Hour, minute and second specification is optional
-start_date, end_date = '2024-06-01', '2025-03-04'
+start_date, end_date = '2024-6-01', '2025-04-01'
 
 # Plots the redox data
 fig, ax = tools.plot_redox(df_redox,
@@ -76,5 +84,9 @@ ax2 = tools.plot_temp(df_temp,
                  color = "black",
                  alpha = 0.8,
                  )
-fig.legend(bbox_to_anchor = (0.985, 0.97))
+fig.legend(bbox_to_anchor = (0.35, 0.97))
+if write_images == 'y':
+    plt.savefig(f"Output//{redox_nodes[0][0:5]}.png",dpi=fig_dpi,bbox_inches='tight')
+    plt.savefig(f"Output//{redox_nodes[0][0:5]}.svg",dpi=fig_dpi,bbox_inches='tight')
 plt.show()
+
