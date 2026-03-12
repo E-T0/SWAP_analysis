@@ -9,7 +9,9 @@ import pandas as pd
 pd.options.mode.chained_assignment = None
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.ticker import NullLocator
 import numpy as np
+from scipy.stats import zscore
 
 def cleanup_redox(file_path : str,
                   correction : float = 200,
@@ -89,6 +91,57 @@ def cleanup_redox(file_path : str,
 
     return(df_redox, df_temp)
 
+def temp_outliers(df, groups, z_threshold=3):
+    """
+    Detects outliers using z-scores within each sensor group and replaces 
+    outlier values with the row-wise mean of the other sensors in the same group.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The input dataframe containing sensor readings.
+    groups : dict
+        A dictionary mapping group names to lists of column names.
+        Example:
+            {
+                "CW1": ["CW1S1", "CW1S2", "CW1S3", "CW1S4"],
+                "CW2": ["CW2S1", "CW2S2", "CW2S3", "CW2S4"],
+                "CW3": ["CW3S1", "CW3S2", "CW3S3", "CW3S4"],
+            }
+    z_threshold : float, optional
+        Absolute z-score threshold beyond which values are considered outliers.
+        Default is 3.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A corrected copy of the dataframe.
+    """
+
+    df_corrected = df.copy()
+
+    for group_name, cols in groups.items():
+
+        # Compute z-scores within the group
+        z = df_corrected[cols].apply(zscore)
+
+        # Boolean mask for outliers
+        mask_outliers = z.abs() > z_threshold
+
+        # Row-wise mean of other sensors in the same group
+        row_means = df_corrected[cols].apply(
+            lambda row: [(row.sum() - row[c]) / (len(row) - 1) for c in row.index],
+            axis=1,
+            result_type="expand"
+        )
+        row_means.columns = cols
+
+        # Replace outliers with the group row-mean
+        df_corrected[cols] = df_corrected[cols].where(~mask_outliers, row_means)
+
+    return df_corrected
+
+
 def plot_redox(df_redox : pd.DataFrame(),
                redox_nodes : list,
                start_date : str,
@@ -152,16 +205,26 @@ def plot_redox(df_redox : pd.DataFrame(),
             print("ylimits_redox is not of the correct format and is thus ignored.")
     
     ax.set_xlabel('Date')
-    ax.set_ylabel(r'Redox potential [$mV$]')
+    ax.set_ylabel(r'Redox potential [mV]')
     
     # Modify axis ticks with the goal to make it more readable.
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%Y'))
-    ax.tick_params(axis='x', rotation=0, pad=15)
+    
+    # Prevent Matplotlib from resetting your major locator
+    ax.xaxis.set_major_locator(ax.xaxis.get_major_locator())
 
-    ax.xaxis.set_minor_locator(mdates.WeekdayLocator())
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
-    ax.tick_params(axis='x', which='minor', length=4, width=1)
+    # Add days when less than 3 months is plotted
+    if df_redox_plot.index[-1] - df_redox_plot.index[0] < pd.Timedelta(days=90):
+        ax.xaxis.set_minor_locator(mdates.DayLocator())
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
+        ax.tick_params(axis='x', which='minor', length=4, width=1)
+        ax.tick_params(axis='x', rotation=-45, pad=15)
+    else:
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.tick_params(axis='x', rotation=-45)
+
+        
     
     # When part of pre-exisiting figure, only ax needs to be returned, otherwise, fig is generated inside this function so it has to be returned as well.
     if fig is None:
@@ -249,16 +312,25 @@ def plot_temp(df_temp : pd.DataFrame(),
             print("ylimits is not of the correct format and is thus ignored.")
             
     ax.set_xlabel('Date')
-    ax.set_ylabel('Temperature (ºC)')
+    ax.set_ylabel('Temperature (°C)')
 
-    # Modify axis ticks to make it more readable.    
+    # Modify axis ticks with the goal to make it more readable.
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b-%Y'))
-    ax.tick_params(axis='x', rotation=0, pad=15)
+    
+    # Prevent Matplotlib from resetting your major locator
+    ax.xaxis.set_major_locator(ax.xaxis.get_major_locator())
 
-    ax.xaxis.set_minor_locator(mdates.WeekdayLocator())
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
-    ax.tick_params(axis='x', which='minor', length=4, width=1)
+    # Add days when less than 3 months is plotted
+    if df_temp.index[-1] - df_temp.index[0] < pd.Timedelta(days=90):
+        ax.xaxis.set_minor_locator(mdates.DayLocator())
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%d'))
+        ax.tick_params(axis='x', which='minor', length=4, width=1)
+        ax.tick_params(axis='x', rotation=-45, pad=15)
+    else:
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.tick_params(axis='x', rotation=-45)
+
     
     # When part of pre-exisiting figure, only ax needs to be returned, otherwise, fig is generated inside this function so it has to be returned as well.
     if fig is None:
@@ -302,4 +374,12 @@ node_dictionary = {
     "CW3_60cm" : ["CW3S1-3", "CW3S2-3", "CW3S3-3", "CW3S4-3"],
     "CW3_80cm" : ["CW3S1-4", "CW3S2-4", "CW3S3-4", "CW3S4-4"]
     }
+
+
+node_T_dictionary = {
+    "CW1": ["CW1S1", "CW1S2", "CW1S3", "CW1S4"],
+    "CW2": ["CW2S1", "CW2S2", "CW2S3", "CW2S4"],
+    "CW3": ["CW3S1", "CW3S2", "CW3S3", "CW3S4"],
+    }
+
 
