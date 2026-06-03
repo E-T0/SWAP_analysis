@@ -61,8 +61,9 @@ redox_nodes0 = ["CW2S1-1", "CW2S1-2", "CW2S1-3", "CW2S1-4"]
 redox_nodes1 = ["CW2S2-1", "CW2S2-2", "CW2S2-3", "CW2S2-4"]
 redox_nodes2 = ["CW2S3-1", "CW2S3-2", "CW2S3-3", "CW2S3-4"]
 redox_nodes3 = ["CW2S4-1", "CW2S4-2", "CW2S4-3", "CW2S4-4"]
+redox_nodes4 = ["CW1S1-1", "CW1S1-2", "CW1S1-3", "CW1S1-4"]
 
-redox_nodes = [redox_nodes0,redox_nodes1,redox_nodes2,redox_nodes3]
+redox_nodes = [redox_nodes0,redox_nodes1,redox_nodes2,redox_nodes3,redox_nodes4]
 temp_nodes = tools.node_T_dictionary["CW2"]
 plot_temp = True
 
@@ -100,7 +101,7 @@ plot_temp = True
 # temp_nodes  = ['CW1S1', 'CW1S2', 'CW1S3', 'CW1S4', 'CW3S1', 'CW3S2', 'CW3S3']
 # The start and end date of the data you want to plot, as 'YYYY-MM-DD hh-mm-ss'. Hour, minute and second specification is optional
 
-start_date, end_date = '2025-11-01', '2099-09-30' # start nanobubbels: 27-2-2025
+start_date, end_date = '2026-04-16', '2099-09-30' # start nanobubbels: 27-2-2025
 
 # # Plots the redox data
 # fig, ax = tools.plot_redox(df_redox,
